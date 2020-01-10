@@ -83,7 +83,7 @@ def exner_function(pressure, reference_pressure=1000):
     The value of the Exner function at the given pressure.
 
     """
-    return (pressure / reference_pressure)**0.28562982892500527
+    return (pressure / reference_pressure) ** 0.28562982892500527
 
 
 def build_asos_request_url(station, start_date, end_date):
@@ -104,14 +104,16 @@ def build_asos_request_url(station, start_date, end_date):
     str: URL of the data
     """
 
-    url_str = (f'https://mesonet.agron.iastate.edu/request/asos/'
-               f'1min_dl.php?station%5B%5D={station}&tz=UTC&year1='
-               f'{start_date:%Y}&month1={start_date:%m}&day1={start_date:%d}'
-               f'&hour1={start_date:%H}&minute1={start_date:%M}&year2='
-               f'{end_date:%Y}&month2={end_date:%m}&day2={end_date:%d}&hour2='
-               f'{end_date:%H}&minute2={end_date:%M}&vars%5B%5D=tmpf&vars%5B'
-               f'%5D=dwpf&vars%5B%5D=sknt&vars%5B%5D=drct&'
-               f'sample=1min&what=view&delim=comma&gis=yes')
+    url_str = (
+        f"https://mesonet.agron.iastate.edu/request/asos/"
+        f"1min_dl.php?station%5B%5D={station}&tz=UTC&year1="
+        f"{start_date:%Y}&month1={start_date:%m}&day1={start_date:%d}"
+        f"&hour1={start_date:%H}&minute1={start_date:%M}&year2="
+        f"{end_date:%Y}&month2={end_date:%m}&day2={end_date:%d}&hour2="
+        f"{end_date:%H}&minute2={end_date:%M}&vars%5B%5D=tmpf&vars%5B"
+        f"%5D=dwpf&vars%5B%5D=sknt&vars%5B%5D=drct&"
+        f"sample=1min&what=view&delim=comma&gis=yes"
+    )
     return url_str
 
 
@@ -135,13 +137,20 @@ def download_asos_data(url):
     df.drop(columns=df.columns[-1], inplace=True)
 
     # Rename the columns to more useful names
-    df.columns = ['station_id', 'station_name', 'latitude_deg',
-                  'longitude_deg', 'UTC', 'temperature_degF',
-                  'dewpoint_degF', 'wind_speed_knots',
-                  'wind_direction_degrees']
+    df.columns = [
+        "station_id",
+        "station_name",
+        "latitude_deg",
+        "longitude_deg",
+        "UTC",
+        "temperature_degF",
+        "dewpoint_degF",
+        "wind_speed_knots",
+        "wind_direction_degrees",
+    ]
 
     # Parse the valid times into real datetimes
-    df['UTC'] = pd.to_datetime(df['UTC'])
+    df["UTC"] = pd.to_datetime(df["UTC"])
     return df
 
 
@@ -165,36 +174,60 @@ def plot_meteogram(df):
     ax2 = plt.subplot(2, 1, 2, sharex=ax1)
     ax2b = ax2.twinx()
 
-    temperature_ymin = min([df['temperature_degF'].min(),
-                           df['dewpoint_degF'].min()]) - 5
+    temperature_ymin = (
+        min([df["temperature_degF"].min(), df["dewpoint_degF"].min()]) - 5
+    )
 
-    temperature_ymax = max([df['temperature_degF'].max(),
-                           df['dewpoint_degF'].max()]) + 5
+    temperature_ymax = (
+        max([df["temperature_degF"].max(), df["dewpoint_degF"].max()]) + 5
+    )
 
-    ax1.fill_between(df['UTC'], df['temperature_degF'],
-                     temperature_ymin, color='tab:red')
+    ax1.fill_between(
+        df["UTC"], df["temperature_degF"], temperature_ymin, color="tab:red"
+    )
 
-    ax1.fill_between(df['UTC'], df['dewpoint_degF'],
-                     temperature_ymin, color='tab:green')
+    ax1.fill_between(
+        df["UTC"], df["dewpoint_degF"], temperature_ymin, color="tab:green"
+    )
 
-    ax2.fill_between(df['UTC'], df['wind_speed_knots'],
-                     df['wind_speed_knots'].min() - 5, color='tab:blue')
+    ax2.fill_between(
+        df["UTC"],
+        df["wind_speed_knots"],
+        df["wind_speed_knots"].min() - 5,
+        color="tab:blue",
+    )
 
-    ax2b.scatter(df['UTC'], df['wind_direction_degrees'],
-                 edgecolor='tab:olive', color='None')
+    ax2b.scatter(
+        df["UTC"], df["wind_direction_degrees"], edgecolor="tab:olive", color="None"
+    )
 
     # Set limits
-    ax1.set_xlim(df['UTC'].min(), df['UTC'].max())
+    ax1.set_xlim(df["UTC"].min(), df["UTC"].max())
     ax1.set_ylim(temperature_ymin, temperature_ymax)
-    ax2.set_ylim(df['wind_speed_knots'].min() - 5,
-                 df['wind_speed_knots'].max() + 5)
+    ax2.set_ylim(df["wind_speed_knots"].min() - 5, df["wind_speed_knots"].max() + 5)
     ax2b.set_ylim(-10, 370)  # Wind Direction with a bit of padding
 
     # Add some labels
     label_fontsize = 14
-    ax2.set_xlabel('Observation Time', fontsize=label_fontsize)
-    ax1.set_ylabel(u'\N{DEGREE SIGN}F', fontsize=label_fontsize)
-    ax2.set_ylabel('Knots', fontsize=label_fontsize)
-    ax2b.set_ylabel('Degrees', fontsize=label_fontsize)
+    ax2.set_xlabel("Observation Time", fontsize=label_fontsize)
+    ax1.set_ylabel("\N{DEGREE SIGN}F", fontsize=label_fontsize)
+    ax2.set_ylabel("Knots", fontsize=label_fontsize)
+    ax2b.set_ylabel("Degrees", fontsize=label_fontsize)
 
     return fig, ax1, ax2, ax2b
+
+
+def wind_components(speed, direction):
+    """
+    Calculate the U, V wind vector components from the speed and direction.
+
+
+    Arguments:
+        speed {[type]} -- [description]
+        direction {[type]} -- [description]
+    """
+
+    direction = np.radians(direction)
+    u = -speed * np.sin(direction)
+    v = -speed * np.cos(direction)
+    return u, v
