@@ -2,7 +2,8 @@
 
 from meteogram import meteogram
 import datetime
-from numpy.testing import assert_almost_equal
+import numpy as np
+from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 #
 # Example starter test
@@ -147,9 +148,27 @@ def test_wind_components_northeast():
 # Exercise 2 - Stop Here
 #
 
+
+def test_wind_components():
+    # Setup
+    speed = np.array([10, 10, 10, 0])
+    direction = np.array([0, 45, 360, 45])
+
+    # Exercise
+    u, v = meteogram.wind_components(speed, direction)
+
+    # Verify
+    true_u = np.array([0, -7.0710, 0, 0])
+    true_v = np.array([-10, -7.0710, -10, 0])
+
+    assert_array_almost_equal(u, true_u, 3)
+    assert_array_almost_equal(v, true_v, 3)
+
+
 #
 # Instructor led mock example
 #
+
 
 #
 # Exercise 3
