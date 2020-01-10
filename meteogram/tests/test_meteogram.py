@@ -4,6 +4,7 @@ from meteogram import meteogram
 import datetime
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
+from unittest.mock import patch
 
 #
 # Example starter test
@@ -170,9 +171,46 @@ def test_wind_components():
 #
 
 
+def mocked_current_utc_time():
+    """
+    Mock our utc time function for testing with defaults
+    """
+    return datetime.datetime(2018, 3, 26, 12)
+
+
+@patch("meteogram.meteogram.current_utc_time", new=mocked_current_utc_time)
+def test_that_mock_works():
+    """
+    Test if we really know how to use a mock.
+    """
+
+    # Setup - None
+
+    # Exercise
+    result = meteogram.current_utc_time()
+
+    # Verify
+    truth = datetime.datetime(2018, 3, 26, 12)
+    assert result == truth
+
+
 #
 # Exercise 3
 #
+
+
+@patch("meteogram.meteogram.current_utc_time", new=mocked_current_utc_time)
+def test_build_asos_request_url_defaults():
+
+    # Setup
+
+    # Exercise
+    url = meteogram.build_asos_request_url("MLI")
+
+    # Verify
+    truth = "https://mesonet.agron.iastate.edu/request/asos/1min_dl.php?station%5B%5D=MLI&tz=UTC&year1=2018&month1=03&day1=25&hour1=12&minute1=00&year2=2018&month2=03&day2=26&hour2=12&minute2=00&vars%5B%5D=tmpf&vars%5B%5D=dwpf&vars%5B%5D=sknt&vars%5B%5D=drct&sample=1min&what=view&delim=comma&gis=yes"
+    assert url == truth
+
 
 #
 # Exercise 3 - Stop Here
